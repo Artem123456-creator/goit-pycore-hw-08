@@ -1,3 +1,4 @@
+import pickle
 from datetime import datetime, timedelta
 from collections import UserDict
 
@@ -30,7 +31,7 @@ def find_next_weekday(d, weekday: int):
     days_ahead = weekday - d.weekday()  
     if days_ahead <= 0:  
         days_ahead += 7  
-    return d + timedelta(days=days_ahead)
+    return d + timedelta(days=days_ahead)  
 
 class Record:
     def __init__(self, name):
@@ -95,13 +96,11 @@ class AddressBook(UserDict):
                     if birthday_this_year.weekday() >= 5:  
                         birthday_this_year = find_next_weekday(birthday_this_year, 0)  
 
-                    congratulation_date_str = birthday_this_year.strftime('%Y.%m.%d')
                     upcoming_birthdays.append({  
                         "name": record.name.value,
-                        "congratulation_date": congratulation_date_str  
+                        "congratulation_date": birthday_this_year.strftime('%Y.%m.%d')  
                     })
         return upcoming_birthdays
-  
 
 def add_birthday(args, book):
     name, birthday_str = args
@@ -162,14 +161,27 @@ def show_all_contacts(book):
     else:
         return "No contacts found"
 
+def save_data(book, filename="addressbook.pkl"):
+    with open(filename, "wb") as f:
+        pickle.dump(book, f)
+
+def load_data(filename="addressbook.pkl"):
+    try:
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return AddressBook()  
+
 def main():
-    book = AddressBook()
+    book = load_data()
+
     print("Welcome to the assistant bot!")
     while True:
         user_input = input("Enter a command: ")
         command, *args = user_input.split()
 
         if command in ["close", "exit"]:
+            save_data(book)
             print("Good bye!")
             break
 
